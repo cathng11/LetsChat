@@ -1,22 +1,22 @@
-var express = require('express'),
+const express = require('express'),
   app = express(),
   bodyParser = require("body-parser"),
   port = process.env.PORT || 3070;
 const path = require('path');
-var http = require('http').createServer(app);
-var io = require('socket.io')(http, {
+const http = require('http').createServer(app);
+const io = require('socket.io')(http, {
   cors: {
     origin: '*',
   }
 });
-var dateformat = require('dateformat');
+const dateformat = require('dateformat');
 
 app.use(bodyParser.json({limit: "50mb"}));
 app.use(bodyParser.urlencoded({limit: "50mb", extended: true, parameterLimit:50000}));
 
-app.use(express.static(path.join(__dirname,'../clients/build')))
+app.use(express.static(path.join(__dirname,'./public')))
 
-var conn=require('./Controller/DB').con;
+const conn=require('./Controller/DB').con;
 function getRandomInt(max) {
   return Math.floor(Math.random() * Math.floor(max));
 };
@@ -55,16 +55,17 @@ io.on('connection', function (socket) {
       });
     });
   });
-
+  //a
   socket.on('reloadHeader', (data) => {
+    console.log(data);
     io.to(data).emit('to-friend-reloadHeader','');
   });
   socket.on('unfriend',(data)=>
   {
     var sql = `DELETE FROM tbl_friend WHERE ID_FriendRequest IN 
-    (SELECT tbl_friend.ID_FriendRequest FROM tbl_friend WHERE ID_Sender='${data.user}' AND ID_Receiver='${data.friend}'
+    (SELECT ID_FriendRequest FROM (select * from tbl_friend) as fr WHERE ID_Sender='${data.user}' AND ID_Receiver='${data.friend}'
     UNION
-    SELECT tbl_friend.ID_FriendRequest FROM tbl_friend WHERE ID_Sender='${data.friend}' AND ID_Receiver='${data.user}')`;
+    SELECT ID_FriendRequest FROM (select * from tbl_friend) as fr WHERE ID_Sender='${data.friend}' AND ID_Receiver='${data.user}')`;
     conn.query(sql,function(err,result){
       if(err) throw err;
       if(result.affectedRows)
@@ -196,10 +197,10 @@ app.use('/api/chatroom',require('./Controller/chatroom'));
 app.use('/api/participants',require('./Controller/participants'));
 
 app.get('/', (req,res) => {
-  res.sendFile(path.join(__dirname, '../clients/build/index.html'));
+  res.sendFile(path.join(__dirname, './public/index.html'));
 });
 
-http.listen(port, function () {
+http.listen(process.env.PORT || 3070,  ()=> {
   console.log('listening on *:' + port);
 
 });

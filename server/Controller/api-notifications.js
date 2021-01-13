@@ -14,7 +14,7 @@ noti.route('').post((req, res) => {
                 + ` SELECT tbl_friend.*, tbl_user.Firstname, tbl_user.Lastname FROM tbl_friend `
                 + " JOIN tbl_user on tbl_user.Username = tbl_friend.ID_Receiver "
                 + `WHERE ID_Sender = '${req.body.username}' AND IsRead = 1 AND IsFriend = 0`;
-        con.query(sql, function (err, results) {
+        con.query(sql, function (error, results) {
             if (results) res.json(results);
             else res.json(null);
         })
@@ -26,6 +26,7 @@ noti.route('/read').post((req, res) => {
     con.connect(function (err) {
         var sql = `update tbl_friend set IsRead = 0 where ID_Sender = '${req.body.username}' and IsRead = 1`;
         con.query(sql);
+        res.send({result: "done"});
     });
 });
 
